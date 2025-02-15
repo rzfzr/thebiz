@@ -29,6 +29,7 @@ const buildHierarchy = (employees: Employee[]) => {
 
 export default function HomePage() {
     const { data: employees, isLoading, error } = useEmployees()
+    console.table(employees)
     const updateManager = useUpdateManager()
 
     if (isLoading) return <Text>Loading...</Text>
@@ -42,6 +43,22 @@ export default function HomePage() {
         const sourceIndex = hierarchicalEmployees.findIndex(
             ([emp]) => emp.id.toString() === result.draggableId
         )
+
+        // If dropping into an employee's droppable area
+        if (result.destination.droppableId !== 'employees') {
+            const newManagerId = parseInt(result.destination.droppableId)
+            const [draggedEmployee] = hierarchicalEmployees[sourceIndex]
+
+            // Don't update if dropping on current manager
+            if (draggedEmployee.manager_id === newManagerId) return
+
+            updateManager.mutate({
+                employeeId: draggedEmployee.id,
+                newManagerId
+            })
+            return
+        }
+
         const destinationIndex = result.destination.index
 
         if (sourceIndex === -1) return
@@ -84,7 +101,7 @@ export default function HomePage() {
             </Text>
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="employees">
-                    {(provided) => (
+                    {(provided, snapshot) => (
                         <View
                             {...provided.droppableProps}
                             ref={provided.innerRef}
@@ -96,27 +113,47 @@ export default function HomePage() {
                                     draggableId={employee.id.toString()}
                                     index={index}
                                 >
-                                    {(provided) => (
+                                    {(provided, snapshot) => (
                                         <div
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
                                             style={{
                                                 ...provided.draggableProps.style,
-                                                backgroundColor: 'white',
-                                                padding: 12,
-                                                marginBottom: 8,
-                                                borderRadius: 4,
                                                 marginLeft: level * 32,
-                                                shadowOffset: { width: 0, height: 1 },
-                                                shadowOpacity: 0.2,
-                                                shadowRadius: 2,
-                                                elevation: 2,
+                                                position: 'relative',
                                             }}
                                         >
-                                            <Text variant="titleMedium">{employee.name}</Text>
-                                            {` - `}
-                                            <Text variant="bodyMedium">{employee.title}</Text>
+                                            <Droppable droppableId={employee.id.toString()}>
+                                                {(dropProvided, dropSnapshot) => (
+                                                    <div
+                                                        ref={dropProvided.innerRef}
+                                                        {...dropProvided.droppableProps}
+                                                        {...provided.dragHandleProps}
+                                                        style={{
+                                                            backgroundColor: 'white',
+                                                            padding: 12,
+                                                            marginBottom: 8,
+                                                            borderRadius: 4,
+                                                            position: 'relative',
+                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                                            border: dropSnapshot.isDraggingOver
+                                                                ? '2px dashed #2196f3'
+                                                                : '2px solid transparent',
+                                                            background: dropSnapshot.isDraggingOver
+                                                                ? '#e3f2fd'
+                                                                : 'white',
+                                                            transition: 'all 0.2s ease',
+                                                        }}
+                                                    >
+                                                        <div>
+                                                            <Text variant="titleMedium">{employee.name}</Text>
+                                                            {` - `}
+                                                            <Text variant="bodyMedium">{employee.title}</Text>
+                                                        </div>
+                                                        {dropProvided.placeholder}
+                                                    </div>
+                                                )}
+                                            </Droppable>
                                         </div>
                                     )}
                                 </Draggable>
