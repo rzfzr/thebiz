@@ -50,6 +50,7 @@ export default function HomePage() {
                                             }}
                                         >
                                             <Text variant="titleMedium">{employee.name}</Text>
+                                            {` - `}
                                             <Text variant="bodyMedium">{employee.title}</Text>
                                         </div>
                                     )}
