@@ -1,7 +1,7 @@
 import { View } from "react-native"
 import { Text } from "react-native-paper"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
-import { useEmployees } from "../../useEmployees"
+import { useEmployees, useUpdateManager } from "../../useEmployees"
 
 interface Employee {
     id: number
@@ -29,6 +29,7 @@ const buildHierarchy = (employees: Employee[]) => {
 
 export default function HomePage() {
     const { data: employees, isLoading, error } = useEmployees()
+    const updateManager = useUpdateManager()
 
     if (isLoading) return <Text>Loading...</Text>
     if (error) return <Text>Error: {(error as Error).message}</Text>
@@ -37,6 +38,43 @@ export default function HomePage() {
 
     const onDragEnd = (result: any) => {
         if (!result.destination) return
+
+        const sourceIndex = hierarchicalEmployees.findIndex(
+            ([emp]) => emp.id.toString() === result.draggableId
+        )
+        const destinationIndex = result.destination.index
+
+        if (sourceIndex === -1) return
+
+        const [draggedEmployee] = hierarchicalEmployees[sourceIndex]
+        const [dropTarget] = hierarchicalEmployees[destinationIndex]
+
+        // Don't update if dropping at the same spot
+        if (draggedEmployee.manager_id === dropTarget.id) return
+
+        // If dropping at position 0, remove manager
+        if (destinationIndex === 0) {
+            updateManager.mutate({
+                employeeId: draggedEmployee.id,
+                newManagerId: null
+            })
+            return
+        }
+
+        // Find the new manager (the closest item above with a lower level)
+        let newManagerIndex = destinationIndex - 1
+        while (newManagerIndex >= 0) {
+            const [potentialManager, managerLevel] = hierarchicalEmployees[newManagerIndex]
+            const [, dropTargetLevel] = hierarchicalEmployees[destinationIndex]
+            if (managerLevel < dropTargetLevel) {
+                updateManager.mutate({
+                    employeeId: draggedEmployee.id,
+                    newManagerId: potentialManager.id
+                })
+                break
+            }
+            newManagerIndex--
+        }
     }
 
     return (
