@@ -25,7 +25,10 @@ export default function AppLayout() {
                 client={queryClient}
                 persistOptions={{ persister: asyncStoragePersister }}
             >
-                <Stack />
+                <Stack
+                    screenOptions={{
+                        headerShown: false
+                    }} />
             </PersistQueryClientProvider>
         </ErrorBoundary>
     )
