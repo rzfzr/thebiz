@@ -1,6 +1,7 @@
 # thebiz - timedout
 
-![Drag and Drop Demo](Animation.GIF)
+
+![Drag and Drop Demo]([https://github.com/rzfzr/challenge-oystr/blob/627fcb3f2c51a011a47103119b1ae2977ba24746/media/Pagination.gif](https://github.com/rzfzr/thebiz/blob/f63884d82ef0e8d0e7913c35516fd62e0ae36e96/Animation.gif))
 
 ## Description
 
