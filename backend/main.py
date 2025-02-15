@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database import SessionLocal, Employee, init_db
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 
 app = FastAPI()
 
@@ -17,7 +18,7 @@ app.add_middleware(
 
 class ManagerUpdate(BaseModel):
     employee_id: int
-    new_manager_id: int
+    new_manager_id: Optional[int] = None
 
 def get_db():
     db = SessionLocal()
@@ -40,7 +41,7 @@ def update_manager(update: ManagerUpdate, db: Session = Depends(get_db)):
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
     
-    if update.new_manager_id:
+    if update.new_manager_id is not None:
         manager = db.query(Employee).filter(Employee.id == update.new_manager_id).first()
         if not manager:
             raise HTTPException(status_code=404, detail="Manager not found")
