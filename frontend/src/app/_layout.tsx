@@ -11,7 +11,7 @@ export default function AppLayout() {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
-                gcTime: 1000 * 60 * 60,
+                gcTime: 1000,
             },
         },
     })
